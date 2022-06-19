@@ -1,9 +1,11 @@
 import "./App.css";
 
+import { Table } from "./components";
+
 function App() {
   return (
     <div className="App">
-      <h1>ADMIN UI</h1>
+      <Table />
     </div>
   );
 }
