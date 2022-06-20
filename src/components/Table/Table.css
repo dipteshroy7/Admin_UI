@@ -22,7 +22,9 @@
 }
 .row {
   border-bottom: 1px solid #ccc;
-  /* height: 49px; */
+}
+.row:hover {
+  background-color: #eee;
 }
 .cell {
   padding: 15px;
@@ -36,7 +38,7 @@
 .actions {
   height: 19px;
 }
-.actions > img {
+.actions img {
   height: 19px;
   margin-right: 15px;
   cursor: pointer;
@@ -45,12 +47,16 @@
   min-height: 550px;
 }
 .table_buttons {
-  padding: 14px;
-  padding-bottom: 0px;
+  padding-top: 15px;
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
   position: relative;
+}
+@media (max-width: 950px) {
+  .table_buttons {
+    padding-top: 64px;
+  }
 }
 .table_buttons > * {
   width: 35px;
@@ -88,4 +94,17 @@
   font-size: 16px;
   position: absolute;
   left: 0px;
+  top: 15px;
+}
+.empty_box {
+  height: 500px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid #ccc;
+  border-top: 0px;
+  font-size: 24px;
+  font-weight: bold;
+  color: #aaa;
+  background-color: #eee;
 }
