@@ -10,9 +10,8 @@
   outline: none;
 }
 .search_box::placeholder {
-  /* Chrome, Firefox, Opera, Safari 10.1+ */
   color: #ccc;
-  opacity: 1; /* Firefox */
+  opacity: 1;
 }
 .search_box:focus {
   border: 1px solid #777;

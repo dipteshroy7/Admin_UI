@@ -5,27 +5,31 @@ import "./Table.css";
 import edit_icon from "../../Assets/images/edit_icon.png";
 import trash_icon from "../../Assets/images/trash_icon.png";
 
+import { EditModal } from "../../components";
+
 function Table() {
   const [search, setSearch] = useState("");
   const [searchedData, setSearchedData] = useState([]);
   const [selectedData, setSelectedData] = useState([]);
+  const [editRow, setEditRow] = useState({});
   const [adminData, setAdminData] = useState([]);
   const [pageData, setPageData] = useState([]);
   const [btns, setBtns] = useState([]);
   const [pageNum, setPageNum] = useState(1);
   const [lastPageNum, setLastPageNum] = useState(0);
 
+  // Initial data loading from the API
   useEffect(() => {
     const fetchData = async () => {
       const response = await fetch("https://geektrust.s3-ap-southeast-1.amazonaws.com/adminui-problem/members.json");
       const data = await response.json();
-      // console.log(data);
       setAdminData(data);
       setPageNum(1);
     };
     fetchData().catch(console.error);
   }, []);
 
+  // show 10 records per page according to search or no search
   useEffect(() => {
     let length = searchedData.length;
     if (length > 0) {
@@ -40,19 +44,18 @@ function Table() {
     }
   }, [adminData, pageNum, lastPageNum, search, searchedData]);
 
+  // page changes to previous page when all the records are deleted of the last page
   useEffect(() => {
     if (pageData.length === 0) setPageNum(lastPageNum);
   }, [pageData, lastPageNum]);
 
+  // unselects all the selected records on page change
   useEffect(() => {
     document.getElementById("select_all").checked = false;
     setSelectedData([]);
   }, [pageNum]);
 
-  useEffect(() => {
-    console.log(selectedData);
-  }, [selectedData]);
-
+  // finds all the records according to the search
   useEffect(() => {
     setSearchedData(
       adminData.filter(({ name, email, role }) => {
@@ -65,23 +68,39 @@ function Table() {
     );
   }, [search, adminData]);
 
+  // go to previous page
   function pageDecrease() {
     if (pageNum > 1) setPageNum(pageNum - 1);
   }
+
+  // go to next page
   function pageIncrease() {
     if (pageNum < lastPageNum) setPageNum(pageNum + 1);
   }
-  function editData(id) {
-    // if (pageNum < lastPageNum) setPageNum(pageNum + 1);
+
+  // open edit modal with selected record
+  function editData(_id, _name, _email, _role) {
+    console.log({ id: _id, name: _name, email: _email, role: _role });
+    setEditRow({ id: _id, name: _name, email: _email, role: _role });
+    document.querySelector("html").style.overflow = "hidden";
+    document.querySelector(".edit_modal_background").style.display = "";
   }
+
+  // delete single record
   function deleteData(id) {
     setAdminData(adminData.filter((data) => data.id !== id));
   }
+
+  // delete multiple selected records together
   function deleteMultipleData() {
-    setAdminData(adminData.filter((data) => !selectedData.includes(data.id)));
-    document.getElementById("select_all").checked = false;
-    setSelectedData([]);
+    if (selectedData.length > 0) {
+      setAdminData(adminData.filter((data) => !selectedData.includes(data.id)));
+      document.getElementById("select_all").checked = false;
+      setSelectedData([]);
+    }
   }
+
+  // select a single record
   function selectData(id) {
     let row = document.getElementById(id + "_row");
     let actions = document.getElementById(id + "_actions");
@@ -97,6 +116,8 @@ function Table() {
       actions.style.display = "flex";
     }
   }
+
+  // select all the records of the current page
   function selectMultipleData() {
     let all = document.getElementById("select_all").checked;
     pageData.forEach(({ id }) => {
@@ -106,6 +127,8 @@ function Table() {
     if (all) setSelectedData(pageData.map(({ id }) => id));
     else setSelectedData([]);
   }
+
+  // show records according to the search
   function searchData(e) {
     setPageNum(1);
     let searched = e.target.value.toLowerCase().trim();
@@ -142,7 +165,7 @@ function Table() {
                 <div className="cell">{role}</div>
                 <div className="cell actions">
                   <div id={id + "_actions"} style={{ display: "flex" }}>
-                    <img src={edit_icon} alt="" onClick={() => editData(id)}></img>
+                    <img src={edit_icon} alt="" onClick={() => editData(id, name, email, role)}></img>
                     <img src={trash_icon} alt="" onClick={() => deleteData(id)}></img>
                   </div>
                 </div>
@@ -183,6 +206,7 @@ function Table() {
           </button>
         </div>
       )}
+      <EditModal editRow={editRow} setEditRow={setEditRow} adminData={adminData} setAdminData={setAdminData} />
     </div>
   );
 }

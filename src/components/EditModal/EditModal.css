@@ -1,0 +1,55 @@
+.edit_modal_background {
+  position: fixed;
+  height: 100vh;
+  width: 100vw;
+  background-color: #00000098;
+  top: 0px;
+  left: 0px;
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.edit_modal {
+  background-color: #fff;
+  padding: 50px;
+  padding-top: 30px;
+  display: flex;
+  flex-direction: column;
+  border-radius: 30px;
+  position: relative;
+}
+.edit_modal > input {
+  color: #777;
+  border: 1px solid #ccc;
+  padding: 10px;
+  width: calc(100% - 22px);
+  border-radius: 3px;
+  outline: none;
+  width: 350px;
+}
+.edit_modal > span {
+  margin: 20px 0px 5px 0px;
+}
+.edit_modal > input::placeholder {
+  color: #ccc;
+  opacity: 1;
+}
+.edit_modal > button {
+  padding: 10px;
+  border: 0px;
+  border-radius: 5px;
+  background-color: rgb(0, 162, 255);
+  color: #fff;
+  font-size: 18px;
+  font-weight: bold;
+  margin-top: 30px;
+  cursor: pointer;
+}
+.cross {
+  width: 20px;
+  position: absolute;
+  top: 35px;
+  right: 50px;
+  cursor: pointer;
+}
