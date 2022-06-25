@@ -2,10 +2,10 @@ import React, { useState, useEffect } from "react";
 
 import "./Table.css";
 
-import edit_icon from "../../Assets/images/edit_icon.png";
-import trash_icon from "../../Assets/images/trash_icon.png";
+import editIcon from "../../Assets/images/edit_icon.png";
+import trashIcon from "../../Assets/images/trash_icon.png";
 
-import { EditModal } from "../../components";
+import { EditModal } from "..";
 
 function Table() {
   const [search, setSearch] = useState("");
@@ -14,7 +14,7 @@ function Table() {
   const [editRow, setEditRow] = useState({});
   const [adminData, setAdminData] = useState([]);
   const [pageData, setPageData] = useState([]);
-  const [btns, setBtns] = useState([]);
+  const [paginationBtns, setPaginationBtns] = useState([]);
   const [pageNum, setPageNum] = useState(1);
   const [lastPageNum, setLastPageNum] = useState(0);
 
@@ -31,16 +31,29 @@ function Table() {
 
   // show 10 records per page according to search or no search
   useEffect(() => {
-    let length = searchedData.length;
-    if (length > 0) {
-      if (length % 10 === 0) setLastPageNum(Math.floor(length / 10));
-      else setLastPageNum(Math.floor(length / 10) + 1);
-      let temp = [];
-      for (let i = (pageNum - 1) * 10; i < (pageNum === lastPageNum ? searchedData.length : pageNum * 10); i++) {
-        temp.push(searchedData[i]);
-      }
-      setPageData(temp.filter((item) => item));
-      setBtns([...Array(lastPageNum).keys()].map((x) => ++x));
+    let searchedDataLength = searchedData.length;
+    let searchedDataExists = searchedDataLength > 0;
+
+    if (searchedDataExists) {
+      let lastPage = Math.floor(searchedDataLength / 10);
+
+      if (searchedDataLength % 10 === 0) setLastPageNum(lastPage);
+      else setLastPageNum(lastPage + 1);
+
+      let tempPageData = [];
+
+      let start = (pageNum - 1) * 10;
+      let end = pageNum === lastPageNum ? searchedDataLength : pageNum * 10;
+
+      for (let i = start; i < end; i++) tempPageData.push(searchedData[i]);
+
+      // filtering null data
+      tempPageData = tempPageData.filter((item) => item);
+
+      setPageData(tempPageData);
+
+      // creating an array from 1 to last page number and setting in pagination buttons
+      setPaginationBtns([...Array(lastPageNum).keys()].map((x) => ++x));
     }
   }, [adminData, pageNum, lastPageNum, search, searchedData]);
 
@@ -51,7 +64,7 @@ function Table() {
 
   // unselects all the selected records on page change
   useEffect(() => {
-    document.getElementById("select_all").checked = false;
+    document.getElementById("select-all").checked = false;
     setSelectedData([]);
   }, [pageNum]);
 
@@ -70,20 +83,23 @@ function Table() {
 
   // go to previous page
   function pageDecrease() {
-    if (pageNum > 1) setPageNum(pageNum - 1);
+    let pageNumGreaterThanOne = pageNum > 1;
+    if (pageNumGreaterThanOne) setPageNum((curPage) => curPage - 1);
   }
 
   // go to next page
   function pageIncrease() {
-    if (pageNum < lastPageNum) setPageNum(pageNum + 1);
+    let pageNumLessThanLast = pageNum < lastPageNum;
+    if (pageNumLessThanLast) setPageNum((curPage) => curPage + 1);
   }
 
   // open edit modal with selected record
   function editData(_id, _name, _email, _role) {
-    console.log({ id: _id, name: _name, email: _email, role: _role });
     setEditRow({ id: _id, name: _name, email: _email, role: _role });
+
+    // show modal and remove scroll to the HTML Element
     document.querySelector("html").style.overflow = "hidden";
-    document.querySelector(".edit_modal_background").style.display = "";
+    document.querySelector(".edit-modal-background").style.display = "";
   }
 
   // delete single record
@@ -95,36 +111,40 @@ function Table() {
   function deleteMultipleData() {
     if (selectedData.length > 0) {
       setAdminData(adminData.filter((data) => !selectedData.includes(data.id)));
-      document.getElementById("select_all").checked = false;
+      document.getElementById("select-all").checked = false;
       setSelectedData([]);
     }
   }
 
   // select a single record
   function selectData(id) {
-    let row = document.getElementById(id + "_row");
-    let actions = document.getElementById(id + "_actions");
-    let cb = document.getElementById(id + "_cb");
-    if (cb.checked === true) {
+    let selectedRecord = document.getElementById(id + "_record");
+    let selectedRecordActions = document.getElementById(id + "_actions");
+
+    let selectedRecordCheckBox = document.getElementById(id + "_cb").checked;
+
+    if (selectedRecordCheckBox) {
       setSelectedData([...selectedData, id]);
-      row.style.backgroundColor = "#ddd";
-      actions.style.display = "none";
+      selectedRecord.style.backgroundColor = "#ddd";
+      selectedRecordActions.style.display = "none";
     } else {
-      document.getElementById("select_all").checked = false;
+      document.getElementById("select-all").checked = false;
       setSelectedData(selectedData.filter((data) => data !== id));
-      row.removeAttribute("style");
-      actions.style.display = "flex";
+      selectedRecord.removeAttribute("style");
+      selectedRecordActions.style.display = "flex";
     }
   }
 
-  // select all the records of the current page
+  // select/unselect all the records of the current page
   function selectMultipleData() {
-    let all = document.getElementById("select_all").checked;
+    let selectAllChecked = document.getElementById("select-all").checked;
+
+    // if checked check all the page data and if unchecked uncheck all the page data
     pageData.forEach(({ id }) => {
-      document.getElementById(id + "_cb").checked = all;
+      document.getElementById(id + "_cb").checked = selectAllChecked;
       selectData(id);
     });
-    if (all) setSelectedData(pageData.map(({ id }) => id));
+    if (selectAllChecked) setSelectedData(pageData.map(({ id }) => id));
     else setSelectedData([]);
   }
 
@@ -135,28 +155,33 @@ function Table() {
     setSearch(searched);
   }
 
+  let LeftBtnClass = pageNum === 1 ? "disabled-btn" : "";
+  let RightBtnClass = pageNum === lastPageNum ? "disabled-btn" : "";
+
+  let searchedDataExists = searchedData.length > 0;
+
   return (
     <div className="table">
       <input
         type="text"
-        className="search_box"
+        className="search-box"
         onChange={searchData}
         placeholder="Search by name, email or role"
       ></input>
-      <div className="table_data">
+      <div className="table-data">
         <div className="row bold">
           <div className="cell">
-            <input type="checkbox" id="select_all" onClick={selectMultipleData}></input>
+            <input type="checkbox" id="select-all" onClick={selectMultipleData}></input>
           </div>
           <div className="cell">Name</div>
           <div className="cell">Email</div>
           <div className="cell">Role</div>
           <div className="cell">Actions</div>
         </div>
-        {searchedData.length > 0 &&
+        {searchedDataExists &&
           pageData.map(({ id, name, email, role }) => {
             return (
-              <div key={id + name} id={id + "_row"} className="row">
+              <div key={id + name} id={id + "_record"} className="row">
                 <div className="cell">
                   <input id={id + "_cb"} type="checkbox" onChange={() => selectData(id)}></input>
                 </div>
@@ -165,48 +190,48 @@ function Table() {
                 <div className="cell">{role}</div>
                 <div className="cell actions">
                   <div id={id + "_actions"} style={{ display: "flex" }}>
-                    <img src={edit_icon} alt="" onClick={() => editData(id, name, email, role)}></img>
-                    <img src={trash_icon} alt="" onClick={() => deleteData(id)}></img>
+                    <img src={editIcon} alt="" onClick={() => editData(id, name, email, role)}></img>
+                    <img src={trashIcon} alt="" onClick={() => deleteData(id)}></img>
                   </div>
                 </div>
               </div>
             );
           })}
-        {searchedData.length === 0 && (
-          <div className="empty_box">
+        {!searchedDataExists && (
+          <div className="empty-box">
             <span>NO DATA FOUND</span>
           </div>
         )}
       </div>
-      {searchedData.length > 0 && (
-        <div className="table_buttons">
-          <button className="delete_selected" onClick={deleteMultipleData}>
+      {searchedDataExists && (
+        <div className="table-buttons">
+          <button className="delete-selected" onClick={deleteMultipleData}>
             Delete Selected
           </button>
-          <button onClick={() => setPageNum(1)} className={pageNum === 1 ? "disbtn" : ""}>
+          <button onClick={() => setPageNum(1)} className={LeftBtnClass}>
             {"\u00AB"}
           </button>
-          <button onClick={pageDecrease} className={pageNum === 1 ? "disbtn" : ""}>
+          <button onClick={pageDecrease} className={LeftBtnClass}>
             {"\u2039"}
           </button>
-          {btns.map((btn) => (
+          {paginationBtns.map((btn) => (
             <button
               key={btn}
               onClick={() => setPageNum(btn)}
-              className={`numbtns ${pageNum === btn ? " selectedbtn" : ""}`}
+              className={`pagination-btns ${pageNum === btn ? " selected-btn" : ""}`}
             >
               {btn}
             </button>
           ))}
-          <button onClick={pageIncrease} className={pageNum === lastPageNum ? "disbtn" : ""}>
+          <button onClick={pageIncrease} className={RightBtnClass}>
             {"\u203A"}
           </button>
-          <button onClick={() => setPageNum(lastPageNum)} className={pageNum === lastPageNum ? "disbtn" : ""}>
+          <button onClick={() => setPageNum(lastPageNum)} className={RightBtnClass}>
             {"\u00BB"}
           </button>
         </div>
       )}
-      <EditModal editRow={editRow} setEditRow={setEditRow} adminData={adminData} setAdminData={setAdminData} />
+      <EditModal editRow={editRow} setEditRow={setEditRow} setAdminData={setAdminData} />
     </div>
   );
 }
